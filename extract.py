@@ -28,5 +28,10 @@ for filename in os.listdir("data"):
                 right = image.size[0]
             if bottom > image.size[1]:
                 bottom = image.size[1]
+
+            width = abs(left - right)
+            height = abs(top - bottom)
+            if (width/height < 0.7) or (height/width < 0.7) :
+                continue
             image1 = image.crop((left, top, right, bottom))
             image1.save("wbc/" + filename + "result" + str(i) + ".jpg", 'JPEG', quality=100)

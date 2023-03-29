@@ -19,7 +19,15 @@ for filename in os.listdir("data"):
         boxes = result.boxes
         xyxy = boxes.xyxy.numpy()
         for find in xyxy:
-            left, top, right, bottom = int(find[0])-5, int(find[1])-5, int(find[2])+5, int(find[3])+5
+            left, top, right, bottom = int(find[0]), int(find[1]), int(find[2]), int(find[3])
+            width = abs(left - right)
+            height = abs(top - bottom)
+            if (width/height < 0.7) or (height/width < 0.7) :
+                continue
+            left -= width/2
+            top -= height/2
+            right += width/2
+            bottom += height/2
             if left < 0:
                 left = 0
             if top < 0:
@@ -28,10 +36,5 @@ for filename in os.listdir("data"):
                 right = image.size[0]
             if bottom > image.size[1]:
                 bottom = image.size[1]
-
-            width = abs(left - right)
-            height = abs(top - bottom)
-            if (width/height < 0.7) or (height/width < 0.7) :
-                continue
             image1 = image.crop((left, top, right, bottom))
             image1.save("wbc/" + filename + "result" + str(i) + ".jpg", 'JPEG', quality=100)

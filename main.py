@@ -63,6 +63,10 @@ if __name__ == "__main__":
                                     height = abs(top - bottom)
                                     if (width/height < 0.7) or (height/width < 0.7) :
                                         continue
+                                    left -= 50
+                                    top -= 50
+                                    right += 50
+                                    bottom += 50
                                     if left < 0:
                                         left = 0
                                     if top < 0:

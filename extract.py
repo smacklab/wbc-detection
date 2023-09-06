@@ -28,6 +28,11 @@ for filename in os.listdir("data"):
                 height = abs(top - bottom)
                 if (width/height < 0.7) or (height/width < 0.7) :
                     continue
+                mid = ((right + left)/2, (bottom + top)/2)
+                left = mid[0] - 100
+                top = mid[1] - 100
+                right = mid[0] + 100
+                bottom = mid[1] + 100
                 if left < 0:
                     left = 0
                 if top < 0:

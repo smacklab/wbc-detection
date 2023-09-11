@@ -13,10 +13,12 @@ from ultralytics import YOLO
 from PIL import Image
 import os
 from tqdm import tqdm
+import torch
 
 
 class WhiteBloodCellDetector:
     def __init__(self, model_path):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = YOLO(model_path)
         self.input_directory = ""
         self.output_directory = ""
@@ -40,6 +42,8 @@ class WhiteBloodCellDetector:
             for box in result.boxes:
                 if box.conf < 0.25:
                     continue
+                if torch.cuda.is_available():
+                    box = box.cpu()
                 xyxy = box.xyxy.numpy()
                 for find in xyxy:
                     left, top, right, bottom = map(int, find)
@@ -53,7 +57,9 @@ class WhiteBloodCellDetector:
                     right = min(mid[0] + 100, image.size[0])
                     bottom = min(mid[1] + 100, image.size[1])
                     image1 = image.crop((left, top, right, bottom))
-                    image1.save(os.path.join(self.output_directory, f"{filename}_result{i}.jpg"), 'JPEG', quality=100)
+                    # string format box.conf to 2 decimal places
+                    confidence = "{:.2f}".format(box.conf)
+                    image1.save(os.path.join(self.output_directory, f"{confidence}_{filename}_result{i}.jpg"), 'JPEG', quality=100)
 
     def extract(self):
         if not os.path.exists(self.output_directory):

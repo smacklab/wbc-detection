@@ -19,6 +19,7 @@ import torch
 class WhiteBloodCellDetector:
     def __init__(self, model_path):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.isCPU = self.device.type == "cpu"
         self.model = YOLO(model_path)
         self.input_directory = ""
         self.output_directory = ""
@@ -37,12 +38,12 @@ class WhiteBloodCellDetector:
 
     def _process_image(self, image_path, filename):
         image = Image.open(image_path)
-        results = self.model(image)
+        results = self.model(image, device=self.device)
         for i, result in enumerate(results):
             for box in result.boxes:
                 if box.conf < 0.25:
                     continue
-                if torch.cuda.is_available():
+                if not self.isCPU:
                     box = box.cpu()
                 xyxy = box.xyxy.numpy()
                 for find in xyxy:
@@ -58,7 +59,7 @@ class WhiteBloodCellDetector:
                     bottom = min(mid[1] + 100, image.size[1])
                     image1 = image.crop((left, top, right, bottom))
                     # string format box.conf to 2 decimal places
-                    confidence = "{:.2f}".format(box.conf)
+                    confidence = "{:.2f}".format(box.conf.item())
                     image1.save(os.path.join(self.output_directory, f"{confidence}_{filename}_result{i}.jpg"), 'JPEG', quality=100)
 
     def extract(self):

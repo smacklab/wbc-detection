@@ -16,8 +16,7 @@ from tqdm import tqdm
 
 
 class WhiteBloodCellDetector:
-    def __init__(self, model_path, device="cuda:0"):
-        self.device = device
+    def __init__(self, model_path):
         self.model = YOLO(model_path)
         self.input_directory = ""
         self.output_directory = ""
@@ -36,13 +35,13 @@ class WhiteBloodCellDetector:
 
     def _process_image(self, image_path, filename):
         image = Image.open(image_path)
-        results = self.model(image, device=self.device)
+        results = self.model(image)
         for i, result in enumerate(results):
             for box in result.boxes:
                 if box.conf < 0.25:
                     continue
-                if self.device != "cpu":
-                    box = box.cpu()
+
+                box = box.cpu()
                 xyxy = box.xyxy.numpy()
                 for find in xyxy:
                     left, top, right, bottom = map(int, find)
@@ -81,7 +80,7 @@ class WhiteBloodCellDetector:
 
 
 if __name__ == "__main__":
-    detector = WhiteBloodCellDetector("wbc-model-Feb24.pt", device="cpu")
-    detector.set_input_directory("data")
+    detector = WhiteBloodCellDetector("wbc-model-Feb24.pt")
+    detector.set_input_directory("data/MHE_Set5_Images")
     detector.set_output_directory("wbc")
     detector.extract()

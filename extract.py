@@ -41,7 +41,7 @@ class WhiteBloodCellDetector:
             for box in result.boxes:
                 if box.conf < 0.25:
                     continue
-                if not self.isCPU:
+                if self.device != "cpu":
                     box = box.cpu()
                 xyxy = box.xyxy.numpy()
                 for find in xyxy:

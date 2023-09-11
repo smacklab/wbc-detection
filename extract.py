@@ -1,45 +1,82 @@
+# extract.py - Extracts white blood cells from images using YOLOv8
+# Set input directory to the directory containing the images to be processed
+# Set output directory to the directory where the extracted images will be saved
+# run WhiteBloodCellDetector extract() method to extract the white blood cells
+#
+# Example:
+# detector = WhiteBloodCellDetector("wbc-model-Feb24.pt")
+# detector.set_input_directory("data")
+# detector.set_output_directory("wbc")
+# detector.extract()
+
 from ultralytics import YOLO
 from PIL import Image
 import os
+from tqdm import tqdm
 
 
-model = YOLO("wbc-model-Feb24.pt")
+class WhiteBloodCellDetector:
+    def __init__(self, model_path):
+        self.model = YOLO(model_path)
+        self.input_directory = ""
+        self.output_directory = ""
 
-for filename in os.listdir("data"):
-    f = os.path.join("data", filename)
-    if not os.path.isfile(f) or not f.endswith(".jpg"):
-        continue
-    image = Image.open(f)
+    def set_input_directory(self, input_directory):
+        self.input_directory = input_directory
+        print(f"Input directory set to '{input_directory}'")
 
-    if not os.path.exists("wbc"):
-        os.makedirs("wbc")
-    
-    results = model(image)
-    for result in results:
-        boxes = result.boxes
-        for i, box in enumerate(boxes):
-            print(box.conf)
-            if box.conf < 0.25:
-                continue
-            xyxy = box.xyxy.numpy()
-            for find in xyxy:
-                left, top, right, bottom = int(find[0]), int(find[1]), int(find[2]), int(find[3])
-                width = abs(left - right)
-                height = abs(top - bottom)
-                if (width/height < 0.7) or (height/width < 0.7) :
+    def set_output_directory(self, output_directory):
+        self.output_directory = output_directory
+        if not os.path.exists(self.output_directory):
+            print(f"Creating new output directory '{output_directory}'")
+            os.makedirs(self.output_directory)
+        else:
+            print(f"Output directory set to '{output_directory}'")
+
+    def _process_image(self, image_path, filename):
+        image = Image.open(image_path)
+        results = self.model(image)
+        for i, result in enumerate(results):
+            for box in result.boxes:
+                if box.conf < 0.25:
                     continue
-                mid = ((right + left)/2, (bottom + top)/2)
-                left = mid[0] - 100
-                top = mid[1] - 100
-                right = mid[0] + 100
-                bottom = mid[1] + 100
-                if left < 0:
-                    left = 0
-                if top < 0:
-                    top = 0
-                if right > image.size[0]:
-                    right = image.size[0]
-                if bottom > image.size[1]:
-                    bottom = image.size[1]
-                image1 = image.crop((left, top, right, bottom))
-                image1.save("wbc/" + filename + "result" + str(i) + ".jpg", 'JPEG', quality=100)
+                xyxy = box.xyxy.numpy()
+                for find in xyxy:
+                    left, top, right, bottom = map(int, find)
+                    width = abs(left - right)
+                    height = abs(top - bottom)
+                    if (width / height < 0.7) or (height / width < 0.7):
+                        continue
+                    mid = ((right + left) / 2, (bottom + top) / 2)
+                    left = max(mid[0] - 100, 0)
+                    top = max(mid[1] - 100, 0)
+                    right = min(mid[0] + 100, image.size[0])
+                    bottom = min(mid[1] + 100, image.size[1])
+                    image1 = image.crop((left, top, right, bottom))
+                    image1.save(os.path.join(self.output_directory, f"{filename}_result{i}.jpg"), 'JPEG', quality=100)
+
+    def extract(self):
+        if not os.path.exists(self.output_directory):
+            os.makedirs(self.output_directory)
+
+        image_files = [f for f in os.listdir(self.input_directory) if f.endswith(".jpg")]
+        image_count = len(image_files)
+
+        if image_count == 0:
+            print(f"No .jpg images found in the input directory: {self.input_directory}")
+            return
+
+        print(f"Input directory set to '{self.input_directory}' with {image_count} images.")
+
+        # loop through all images in the input directory
+        for filename in tqdm(image_files, desc="Processing Images"):
+            print("Processing image:", filename)
+            image_path = os.path.join(self.input_directory, filename)
+            self._process_image(image_path, filename)
+
+
+if __name__ == "__main__":
+    detector = WhiteBloodCellDetector("wbc-model-Feb24.pt")
+    detector.set_input_directory("data")
+    detector.set_output_directory("wbc")
+    detector.extract()

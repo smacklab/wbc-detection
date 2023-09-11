@@ -240,3 +240,5 @@ poetry.toml
 *.ndpi
 *.jpg
 *.png
+data/
+output/

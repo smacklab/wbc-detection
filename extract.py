@@ -13,13 +13,11 @@ from ultralytics import YOLO
 from PIL import Image
 import os
 from tqdm import tqdm
-import torch
 
 
 class WhiteBloodCellDetector:
-    def __init__(self, model_path):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.isCPU = self.device.type == "cpu"
+    def __init__(self, model_path, device="cuda:0"):
+        self.device = device
         self.model = YOLO(model_path)
         self.input_directory = ""
         self.output_directory = ""
@@ -77,13 +75,13 @@ class WhiteBloodCellDetector:
 
         # loop through all images in the input directory
         for filename in tqdm(image_files, desc="Processing Images"):
-            print("Processing image:", filename)
+            # print("Processing image:", filename)
             image_path = os.path.join(self.input_directory, filename)
             self._process_image(image_path, filename)
 
 
 if __name__ == "__main__":
-    detector = WhiteBloodCellDetector("wbc-model-Feb24.pt")
+    detector = WhiteBloodCellDetector("wbc-model-Feb24.pt", device="cpu")
     detector.set_input_directory("data")
     detector.set_output_directory("wbc")
     detector.extract()

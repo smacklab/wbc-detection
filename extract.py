@@ -47,7 +47,7 @@ class WhiteBloodCellDetector:
         results = self.model(image, verbose=False)
         for i, result in enumerate(results):
             for box in result.boxes:
-                if box.conf < 0.25:
+                if box.conf < 0.35:
                     continue
 
                 box = box.cpu()
@@ -66,10 +66,10 @@ class WhiteBloodCellDetector:
                     image1 = image.crop((left, top, right, bottom))
                     # string format box.conf to 2 decimal places
                     confidence = "{:.2f}".format(box.conf.item())
-                    image1.save(os.path.join(self.output_directory, f"{confidence}_{filename}_result{i}.jpg"), 'JPEG', quality=100)
+                    image1.save(os.path.join(self.output_directory, f"{confidence}_{filename}_x_{mid[0]}_y_{mid[1]}_h_{bottom-top}_w_{right-left}_result{i}.jpg"), 'JPEG', quality=100)
                     if self.save_to_csv:
-                        center_x = (left + right) / 2
-                        center_y = (top + bottom) / 2
+                        center_x = mid[0]
+                        center_y = mid[1]
                         self._save_to_csv(filename, confidence, center_x, center_y, right - left, bottom - top)
 
     def extract(self):

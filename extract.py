@@ -13,13 +13,22 @@ from ultralytics import YOLO
 from PIL import Image
 import os
 from tqdm import tqdm
-
+import csv
 
 class WhiteBloodCellDetector:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
         self.input_directory = ""
         self.output_directory = ""
+        self.save_to_csv = False
+    
+    def set_save_to_csv(self, save_to_csv):
+        self.save_to_csv = save_to_csv
+        if self.save_to_csv:
+            with open('output.csv', 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(["filename", "confidence", "center_x", "center_y", "height", "width"])
+            print("Saving to csv file: output.csv")
 
     def set_input_directory(self, input_directory):
         self.input_directory = input_directory
@@ -35,7 +44,7 @@ class WhiteBloodCellDetector:
 
     def _process_image(self, image_path, filename):
         image = Image.open(image_path)
-        results = self.model(image)
+        results = self.model(image, verbose=False)
         for i, result in enumerate(results):
             for box in result.boxes:
                 if box.conf < 0.25:
@@ -58,6 +67,10 @@ class WhiteBloodCellDetector:
                     # string format box.conf to 2 decimal places
                     confidence = "{:.2f}".format(box.conf.item())
                     image1.save(os.path.join(self.output_directory, f"{confidence}_{filename}_result{i}.jpg"), 'JPEG', quality=100)
+                    if self.save_to_csv:
+                        center_x = (left + right) / 2
+                        center_y = (top + bottom) / 2
+                        self._save_to_csv(filename, confidence, center_x, center_y, right - left, bottom - top)
 
     def extract(self):
         if not os.path.exists(self.output_directory):
@@ -78,9 +91,14 @@ class WhiteBloodCellDetector:
             image_path = os.path.join(self.input_directory, filename)
             self._process_image(image_path, filename)
 
+    def _save_to_csv(self, filename, confidence,  center_x, center_y, height, width):
+        with open('output.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([filename, confidence, center_x, center_y, height, width])
 
 if __name__ == "__main__":
     detector = WhiteBloodCellDetector("wbc-model-Feb24.pt")
-    detector.set_input_directory("data/MHE_Set5_Images")
+    detector.set_input_directory("Set5")
     detector.set_output_directory("wbc")
+    detector.set_save_to_csv(True)
     detector.extract()

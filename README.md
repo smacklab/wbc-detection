@@ -12,3 +12,13 @@ extract.py - extract wbc from jpg file
 put the model for wbc detection in the same folder, and rename the model name in extract.py.
 
 The ultralytics package is ver.8.0.20, the newer version might not work with some functions.
+
+### Installation
+
+Make sure you have a GPU installed in your system and CUDA is installed.
+
+```
+conda create -n myenv python=3.11.5
+conda activate myenv
+pip install ultralytics tqdm
+```

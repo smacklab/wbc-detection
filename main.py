@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 wbc_model = YOLO("wbc-model-Feb24.pt")
-model = YOLO("blood_smear_model_Apr10.pt")
+model = YOLO("blood_smear_model_Oct20.pt")
 if not os.path.exists("output"):
     os.makedirs("output")
 
@@ -44,12 +44,11 @@ if __name__ == "__main__":
 
                     # run prediction on image
                     results = model(cropped_image)
-                    parsed_results = list([float(x) for x in results[0].probs])
-                    max_index = np.argmax(parsed_results)
+                    max_index = results[0].probs.top1
                     class_name = model.names[max_index]
                     if class_name == 'Dense':
                         continue
-                    if parsed_results[2] < .99 and max_index == 1:
+                    if max_index == 1:
                         results = wbc_model(cropped_image)
                         for result in results:
                             boxes = result.boxes
@@ -79,4 +78,3 @@ if __name__ == "__main__":
                                     save_path = os.path.join("output", image_name,
                                                             class_name,  cropped_image_name + str(i) + ".jpg")
                                     image1.save(save_path, "JPEG", quality=100)
-

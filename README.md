@@ -11,7 +11,7 @@ put the model for classified ROI and also model for wbc detection in the same fo
 extract.py - extract wbc from jpg file
 put the model for wbc detection in the same folder, and rename the model name in extract.py.
 
-The ultralytics package is ver. 8.0.184
+Last tested ultralytics package is ver. 8.0.202
 
 ### Installation
 

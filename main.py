@@ -62,18 +62,12 @@ if __name__ == "__main__":
                                     height = abs(top - bottom)
                                     if (width/height < 0.7) or (height/width < 0.7) :
                                         continue
-                                    left -= 50
-                                    top -= 50
-                                    right += 50
-                                    bottom += 50
-                                    if left < 0:
-                                        left = 0
-                                    if top < 0:
-                                        top = 0
-                                    if right > cropped_image.size[0]:
-                                        right = cropped_image.size[0]
-                                    if bottom > cropped_image.size[1]:
-                                        bottom = cropped_image.size[1]
+                                    mid = ((right + left) / 2, (bottom + top) / 2)
+                                    left = max(mid[0] - 100, 0)
+                                    top = max(mid[1] - 100, 0)
+                                    right = min(mid[0] + 100, image.size[0])
+                                    bottom = min(mid[1] + 100, image.size[1])
+                                    image1 = image.crop((left, top, right, bottom))
                                     image1 = cropped_image.crop((left, top, right, bottom))
                                     save_path = os.path.join("output", image_name,
                                                             class_name,  cropped_image_name + str(i) + ".jpg")
